@@ -1,0 +1,23 @@
+name: Docker Image Downloader
+
+on:
+  workflow_dispatch: # 手动触发运行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull Docker Image
+        run: |
+          docker pull ursky/metawrap-mg:1.3.2
+          
+      - name: Save and Split Image
+        run: |
+          # 将镜像保存为 tar 包，并分割成 2GB 的块（防止 GitHub 附件限制）
+          docker save ursky/metawrap-mg:1.3.2 | gzip | split -b 2G - metawrap_image.tar.gz.
+          
+      - name: Upload to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: metawrap-chunks
+          path: metawrap_image.tar.gz.*
